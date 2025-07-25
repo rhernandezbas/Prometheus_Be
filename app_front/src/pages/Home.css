@@ -1,0 +1,168 @@
+.home-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.welcome-section {
+  margin-bottom: 2rem;
+  text-align: left;
+  padding: 1.5rem 0;
+}
+
+.welcome-section h1 {
+  font-size: 2.2rem;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.welcome-message {
+  font-size: 1.1rem;
+  color: #555;
+  margin-top: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+/* Estilos para el buscador */
+.search-container {
+  margin: 1.5rem 0;
+  max-width: 500px;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 50px;
+  padding: 0.5rem 1rem;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.search-icon {
+  margin-right: 10px;
+  color: #888;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  padding: 0.5rem 0;
+  background: transparent;
+}
+
+/* Estilos para las tarjetas de módulos */
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.module-card {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  display: flex;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.module-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.module-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  font-size: 2rem;
+  padding: 1rem;
+}
+
+.student-icon {
+  background-color: #e3f2fd;
+  color: #2196f3;
+}
+
+.admin-icon {
+  background-color: #fff3e0;
+  color: #ff9800;
+}
+
+.finance-icon {
+  background-color: #e8f5e9;
+  color: #4caf50;
+}
+
+.module-content {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.module-content h2 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+  color: #2c3e50;
+}
+
+.module-content p {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.module-button {
+  display: inline-block;
+  padding: 0.6rem 1.2rem;
+  background-color: #3498db;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.module-button:hover {
+  background-color: #2980b9;
+}
+
+/* Estilos para la gráfica de finanzas */
+.chart-preview {
+  display: flex;
+  align-items: flex-end;
+  height: 70px;
+  margin-bottom: 1rem;
+  gap: 5px;
+}
+
+.chart-bar {
+  flex: 1;
+  background: linear-gradient(to top, #4caf50, #81c784);
+  border-radius: 3px 3px 0 0;
+}
+
+/* Estilos responsivos */
+@media (max-width: 768px) {
+  .home-container {
+    padding: 1rem;
+  }
+
+  .modules-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .module-card {
+    flex-direction: column;
+  }
+
+  .module-icon {
+    width: 100%;
+    padding: 1rem 0;
+  }
+}
