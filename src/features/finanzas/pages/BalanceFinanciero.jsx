@@ -18,13 +18,68 @@ const BalanceFinanciero = () => {
     try {
       setLoading(true);
       const response = await finanzasService.getBalance(filtros);
-      setBalanceData(response.data);
+      console.log('Balance API response:', response.data);
+      
+      // Procesar y validar los datos recibidos
+      const processedData = processBalanceData(response.data);
+      setBalanceData(processedData);
     } catch (err) {
       console.error('Error al cargar balance financiero:', err);
       setError('Error al cargar el balance financiero');
     } finally {
       setLoading(false);
     }
+  };
+
+  // Función para procesar y validar los datos del balance
+  const processBalanceData = (data) => {
+    // Si no hay datos, devolver null para usar los datos de muestra
+    if (!data) return null;
+    
+    // Crear estructura base con valores predeterminados
+    const processedData = {
+      periodo: `${filtros.mes}/${filtros.año}`,
+      ingresos: {
+        total: 0,
+        categorias: []
+      },
+      gastos: {
+        total: 0,
+        categorias: []
+      },
+      balance: 0,
+      tendencia: {
+        ultimos6Meses: []
+      }
+    };
+    
+    // Procesar ingresos si existen
+    if (data.ingresos) {
+      processedData.ingresos.total = data.ingresos.total || 0;
+      
+      if (Array.isArray(data.ingresos.categorias)) {
+        processedData.ingresos.categorias = data.ingresos.categorias;
+      }
+    }
+    
+    // Procesar gastos si existen
+    if (data.gastos) {
+      processedData.gastos.total = data.gastos.total || 0;
+      
+      if (Array.isArray(data.gastos.categorias)) {
+        processedData.gastos.categorias = data.gastos.categorias;
+      }
+    }
+    
+    // Procesar balance
+    processedData.balance = data.balance || (processedData.ingresos.total - processedData.gastos.total);
+    
+    // Procesar tendencia si existe
+    if (data.tendencia && Array.isArray(data.tendencia.ultimos6Meses)) {
+      processedData.tendencia.ultimos6Meses = data.tendencia.ultimos6Meses;
+    }
+    
+    return processedData;
   };
 
   const handleFiltroChange = (e) => {
@@ -80,7 +135,16 @@ const BalanceFinanciero = () => {
     }
   };
 
+  // Asegurarse de que displayBalance siempre tenga una estructura válida
   const displayBalance = balanceData || balanceMuestra;
+
+  // Verificar que las propiedades existan antes de acceder a ellas
+  const ingresosTotal = displayBalance?.ingresos?.total || 0;
+  const gastosTotal = displayBalance?.gastos?.total || 0;
+  const balanceTotal = displayBalance?.balance || 0;
+  const ingresosCategorias = displayBalance?.ingresos?.categorias || [];
+  const gastosCategorias = displayBalance?.gastos?.categorias || [];
+  const tendencia = displayBalance?.tendencia?.ultimos6Meses || [];
 
   return (
     <div className="balance-container">
@@ -143,17 +207,17 @@ const BalanceFinanciero = () => {
       <div className="balance-summary">
         <div className="summary-card ingresos">
           <h2>Total Ingresos</h2>
-          <div className="amount">${displayBalance.ingresos.total}</div>
+          <div className="amount">${ingresosTotal.toFixed(2)}</div>
         </div>
         
         <div className="summary-card gastos">
           <h2>Total Gastos</h2>
-          <div className="amount">${displayBalance.gastos.total}</div>
+          <div className="amount">${gastosTotal.toFixed(2)}</div>
         </div>
         
         <div className="summary-card balance">
           <h2>Balance</h2>
-          <div className="amount">${displayBalance.balance}</div>
+          <div className="amount">${balanceTotal.toFixed(2)}</div>
         </div>
       </div>
 
@@ -163,13 +227,17 @@ const BalanceFinanciero = () => {
           <div className="chart-container">
             {/* Aquí se podría integrar un gráfico de pastel */}
             <div className="pie-chart-placeholder">
-              {displayBalance.ingresos.categorias.map((item, index) => (
-                <div key={index} className="chart-item">
-                  <div className="color-box" style={{ backgroundColor: getColor(index) }}></div>
-                  <div className="item-label">{item.categoria}</div>
-                  <div className="item-value">${item.monto}</div>
-                </div>
-              ))}
+              {ingresosCategorias.length > 0 ? (
+                ingresosCategorias.map((item, index) => (
+                  <div key={index} className="chart-item">
+                    <div className="color-box" style={{ backgroundColor: getColor(index) }}></div>
+                    <div className="item-label">{item.categoria}</div>
+                    <div className="item-value">${item.monto}</div>
+                  </div>
+                ))
+              ) : (
+                <div className="no-data">No hay datos de categorías de ingresos disponibles</div>
+              )}
             </div>
           </div>
         </div>
@@ -179,13 +247,17 @@ const BalanceFinanciero = () => {
           <div className="chart-container">
             {/* Aquí se podría integrar un gráfico de pastel */}
             <div className="pie-chart-placeholder">
-              {displayBalance.gastos.categorias.map((item, index) => (
-                <div key={index} className="chart-item">
-                  <div className="color-box" style={{ backgroundColor: getColor(index + 5) }}></div>
-                  <div className="item-label">{item.categoria}</div>
-                  <div className="item-value">${item.monto}</div>
-                </div>
-              ))}
+              {gastosCategorias.length > 0 ? (
+                gastosCategorias.map((item, index) => (
+                  <div key={index} className="chart-item">
+                    <div className="color-box" style={{ backgroundColor: getColor(index + 5) }}></div>
+                    <div className="item-label">{item.categoria}</div>
+                    <div className="item-value">${item.monto}</div>
+                  </div>
+                ))
+              ) : (
+                <div className="no-data">No hay datos de categorías de gastos disponibles</div>
+              )}
             </div>
           </div>
         </div>
@@ -196,26 +268,30 @@ const BalanceFinanciero = () => {
         <div className="chart-container">
           {/* Aquí se podría integrar un gráfico de líneas */}
           <div className="line-chart-placeholder">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Mes</th>
-                  <th>Ingresos</th>
-                  <th>Gastos</th>
-                  <th>Balance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {displayBalance.tendencia.ultimos6Meses.map((item, index) => (
-                  <tr key={index}>
-                    <td>{item.mes}</td>
-                    <td>${item.ingresos}</td>
-                    <td>${item.gastos}</td>
-                    <td>${item.balance}</td>
+            {tendencia.length > 0 ? (
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Mes</th>
+                    <th>Ingresos</th>
+                    <th>Gastos</th>
+                    <th>Balance</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {tendencia.map((item, index) => (
+                    <tr key={index}>
+                      <td>{item.mes}</td>
+                      <td>${item.ingresos}</td>
+                      <td>${item.gastos}</td>
+                      <td>${item.balance}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div className="no-data">No hay datos de tendencia disponibles</div>
+            )}
           </div>
         </div>
       </div>
@@ -225,10 +301,7 @@ const BalanceFinanciero = () => {
 
 // Función auxiliar para generar colores para los gráficos
 const getColor = (index) => {
-  const colors = [
-    '#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6',
-    '#1abc9c', '#d35400', '#34495e', '#16a085', '#c0392b'
-  ];
+  const colors = ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#6f42c1', '#5a5c69', '#858796', '#f8f9fc', '#d1d3e2'];
   return colors[index % colors.length];
 };
 

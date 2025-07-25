@@ -6,6 +6,8 @@ const IngresosLista = () => {
   const [ingresos, setIngresos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [ingresoToDelete, setIngresoToDelete] = useState(null);
   const [filtros, setFiltros] = useState({
     fechaInicio: '',
     fechaFin: '',
@@ -22,10 +24,28 @@ const IngresosLista = () => {
     try {
       setLoading(true);
       const response = await finanzasService.getIngresos(params);
-      setIngresos(response.data);
+      
+      // Ensure ingresos is always an array
+      if (response.data && Array.isArray(response.data)) {
+        setIngresos(response.data);
+      } else if (response.data) {
+        console.warn('API returned non-array data for ingresos:', response.data);
+        // If response.data exists but is not an array, check if it contains ingresos property
+        if (response.data.ingresos && Array.isArray(response.data.ingresos)) {
+          setIngresos(response.data.ingresos);
+        } else {
+          // Set empty array as fallback
+          setIngresos([]);
+        }
+      } else {
+        // Handle null or undefined response
+        console.warn('API returned null or undefined data for ingresos');
+        setIngresos([]);
+      }
     } catch (err) {
       console.error('Error al cargar ingresos:', err);
       setError('Error al cargar la lista de ingresos');
+      setIngresos([]); // Ensure ingresos is reset to an array on error
     } finally {
       setLoading(false);
     }
@@ -54,35 +74,87 @@ const IngresosLista = () => {
     fetchIngresos();
   };
 
-  const handleEliminar = async (id) => {
-    if (window.confirm('¿Está seguro que desea eliminar este ingreso?')) {
-      try {
-        await finanzasService.deleteIngreso(id);
-        fetchIngresos();
-      } catch (err) {
-        console.error('Error al eliminar ingreso:', err);
-        setError('Error al eliminar el ingreso');
-      }
+  const handleEliminarClick = (ingreso) => {
+    setIngresoToDelete(ingreso);
+    setShowDeleteModal(true);
+  };
+
+  const handleEliminar = async () => {
+    try {
+      await finanzasService.deleteIngreso(ingresoToDelete.id);
+      setShowDeleteModal(false);
+      setIngresoToDelete(null);
+      fetchIngresos();
+    } catch (err) {
+      console.error('Error al eliminar ingreso:', err);
+      setError('Error al eliminar el ingreso');
     }
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setIngresoToDelete(null);
   };
 
   if (loading && ingresos.length === 0) {
     return <div className="loading">Cargando ingresos...</div>;
   }
 
-  // Si no hay datos reales, usar datos de muestra
-  const ingresosMuestra = [
-    { id: 1, concepto: 'Matrícula', monto: 5000, fecha: '2025-07-15', categoria: 'Inscripción' },
-    { id: 2, concepto: 'Mensualidad Julio', monto: 3500, fecha: '2025-07-10', categoria: 'Mensualidad' },
-    { id: 3, concepto: 'Curso especial de verano', monto: 2000, fecha: '2025-07-05', categoria: 'Curso' },
-    { id: 4, concepto: 'Venta de materiales', monto: 800, fecha: '2025-06-28', categoria: 'Material' },
-    { id: 5, concepto: 'Donación', monto: 1500, fecha: '2025-06-20', categoria: 'Otros' }
-  ];
-
-  const displayIngresos = ingresos.length > 0 ? ingresos : ingresosMuestra;
-
   return (
     <div className="ingresos-container">
+      {showDeleteModal && ingresoToDelete && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div className="modal-content" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '10px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.2)', position: 'relative', borderTop: '5px solid #dc3545' }}>
+            <button className="close-button" onClick={closeDeleteModal} style={{ 
+              backgroundColor: '#dc3545', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '50%', 
+              width: '30px', 
+              height: '30px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              fontSize: '18px',
+              fontWeight: 'bold',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+              cursor: 'pointer',
+              position: 'absolute',
+              top: '-15px',
+              right: '-15px'
+            }}>×</button>
+            <div className="modal-header">
+              <h2 style={{ color: '#dc3545' }}>Confirmar Eliminación</h2>
+            </div>
+            <div className="modal-body" style={{ padding: '1.75rem', fontSize: '1.1rem', textAlign: 'center' }}>
+              <p>¿Está seguro que desea eliminar este ingreso?</p>
+              <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '5px' }}>
+                <p><strong>Concepto:</strong> {ingresoToDelete.concepto}</p>
+                <p><strong>Monto:</strong> ${ingresoToDelete.monto}</p>
+                <p><strong>Fecha:</strong> {ingresoToDelete.fecha}</p>
+              </div>
+              <p style={{ marginTop: '15px', color: '#dc3545' }}>Esta acción no se puede deshacer.</p>
+            </div>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'center', gap: '15px', padding: '1.25rem', borderTop: '1px solid #e9ecef' }}>
+              <button 
+                className="btn btn-secondary" 
+                onClick={closeDeleteModal}
+                style={{ minWidth: '120px', padding: '10px 20px' }}
+              >
+                Cancelar
+              </button>
+              <button 
+                className="btn btn-danger" 
+                onClick={handleEliminar}
+                style={{ minWidth: '120px', padding: '10px 20px' }}
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="page-header">
         <h1>Registro de Ingresos</h1>
         <Link to="/finanzas/ingresos/nuevo" className="btn btn-primary">
@@ -163,7 +235,7 @@ const IngresosLista = () => {
         </form>
       </div>
 
-      {displayIngresos.length === 0 ? (
+      {ingresos.length === 0 ? (
         <div className="empty-state">
           <p>No se encontraron ingresos con los filtros aplicados.</p>
         </div>
@@ -181,11 +253,11 @@ const IngresosLista = () => {
               </tr>
             </thead>
             <tbody>
-              {displayIngresos.map((ingreso) => (
+              {ingresos.map((ingreso) => (
                 <tr key={ingreso.id}>
                   <td>{ingreso.id}</td>
                   <td>{ingreso.concepto}</td>
-                  <td>${ingreso.monto}</td>
+                  <td>${Number(ingreso.monto).toFixed(2)}</td>
                   <td>{ingreso.fecha}</td>
                   <td>{ingreso.categoria}</td>
                   <td>
@@ -197,7 +269,7 @@ const IngresosLista = () => {
                         Editar
                       </button>
                       <button
-                        onClick={() => handleEliminar(ingreso.id)}
+                        onClick={() => handleEliminarClick(ingreso)}
                         className="btn btn-danger btn-sm"
                       >
                         Eliminar
@@ -215,7 +287,7 @@ const IngresosLista = () => {
         <div className="total-card">
           <span className="label">Total Ingresos:</span>
           <span className="value">
-            ${displayIngresos.reduce((total, ingreso) => total + Number(ingreso.monto), 0).toFixed(2)}
+            ${ingresos.reduce((total, ingreso) => total + Number(ingreso.monto || 0), 0).toFixed(2)}
           </span>
         </div>
       </div>
