@@ -2,14 +2,37 @@ version: '3'
 
 services:
   frontend:
+    # Imagen del frontend (ajusta según tu configuración)
+    image: prometheus_be_frontend:latest
     build: .
     ports:
-      - "8090:8080"
+      - "8090:8080"  # Solo el frontend está expuesto públicamente
     environment:
-      - VITE_API_URL=http://localhost:8080
+      # El frontend se conecta al backend usando el nombre del servicio
+      - VITE_API_URL=http://app:5000
+      # o la variable que uses para configurar la URL del backend
+    depends_on:
+      - app
     networks:
-      - app-network
+      - academia-network
+
+  app:
+    # Aquí irá la configuración de tu backend
+    # Por ejemplo, si es una imagen de Python/Flask:
+    # image: tu-backend-image:latest
+    # build: ./backend
+    # ports:
+    #   - "5000:5000"  # Puerto interno, no expuesto públicamente
+    # environment:
+    #   - DATABASE_URL=postgresql://user:pass@db:5432/dbname
+    # depends_on:
+    #   - db
+    networks:
+      - academia-network
+    # Comentado hasta que configures tu backend
+    image: nginx:alpine  # placeholder temporal
+    command: ["sh", "-c", "echo 'Backend placeholder' && sleep infinity"]
 
 networks:
-  app-network:
+  academia-network:
     driver: bridge
