@@ -24,7 +24,16 @@ jobs:
           git pull origin main
           
           # Detener todos los contenedores relacionados
-          docker-compose down
+          docker-compose down --remove-orphans
+          
+          # Limpieza más agresiva de contenedores e imágenes
+          # Detener todos los contenedores que usan el puerto 8090
+          CONTAINER_ID=$(docker ps -q --filter publish=8090)
+          if [ ! -z "$CONTAINER_ID" ]; then
+            echo "Stopping container using port 8090: $CONTAINER_ID"
+            docker stop $CONTAINER_ID
+            docker rm $CONTAINER_ID
+          fi
           
           # Verificar y matar cualquier proceso que use el puerto 8090
           PORT_PID=$(lsof -t -i:8090 || echo "")
@@ -32,6 +41,16 @@ jobs:
             echo "Killing process using port 8090: $PORT_PID"
             kill -9 $PORT_PID
           fi
+          
+          # Eliminar contenedores con el mismo nombre
+          EXISTING_CONTAINER=$(docker ps -a -q --filter name=prometheus-frontend)
+          if [ ! -z "$EXISTING_CONTAINER" ]; then
+            echo "Removing existing container: $EXISTING_CONTAINER"
+            docker rm -f $EXISTING_CONTAINER
+          fi
+          
+          # Limpiar recursos no utilizados
+          docker system prune -f
           
           # Esperar un momento para asegurar que los puertos se liberen
           sleep 5
