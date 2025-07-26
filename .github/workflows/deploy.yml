@@ -26,7 +26,7 @@ jobs:
           # En lugar de detener todos los contenedores, solo enfocarse en el frontend
           
           # Detener y eliminar solo el contenedor frontend si existe
-          FRONTEND_CONTAINER=$(docker ps -a -q --filter name=prometheus-frontend)
+          FRONTEND_CONTAINER=$(docker ps -a -q --filter name=prometheus_be_frontend)
           if [ ! -z "$FRONTEND_CONTAINER" ]; then
             echo "Stopping and removing frontend container: $FRONTEND_CONTAINER"
             docker stop $FRONTEND_CONTAINER
