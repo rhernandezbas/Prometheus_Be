@@ -32,7 +32,11 @@ const ReportesFinancieros = () => {
         response = await finanzasService.getReportesAnuales(filtros.año);
       }
       
-      setReporteData(response.data);
+      console.log('Reporte API response:', response.data);
+      
+      // Procesar y validar los datos recibidos
+      const processedData = processReporteData(response.data, filtros);
+      setReporteData(processedData);
     } catch (err) {
       console.error('Error al generar reporte:', err);
       setError('Error al generar el reporte financiero');
@@ -41,84 +45,160 @@ const ReportesFinancieros = () => {
     }
   };
 
+  // Función para procesar y validar los datos del reporte
+  const processReporteData = (data, filtros) => {
+    // Si no hay datos, devolver null
+    if (!data) return null;
+    
+    // Crear estructura base según el tipo de reporte
+    if (filtros.tipoReporte === 'mensual') {
+      // Estructura para reporte mensual
+      const processedData = {
+        periodo: `${filtros.mes}/${filtros.año}`,
+        ingresos: {
+          total: 0,
+          detalles: []
+        },
+        gastos: {
+          total: 0,
+          detalles: []
+        },
+        balance: 0,
+        comparativoMesAnterior: {
+          ingresos: { actual: 0, anterior: 0, diferencia: 0, porcentaje: 0 },
+          gastos: { actual: 0, anterior: 0, diferencia: 0, porcentaje: 0 },
+          balance: { actual: 0, anterior: 0, diferencia: 0, porcentaje: 0 }
+        }
+      };
+      
+      // Procesar ingresos si existen
+      if (data.ingresos) {
+        processedData.ingresos.total = data.ingresos.total || 0;
+        
+        if (Array.isArray(data.ingresos.detalles)) {
+          processedData.ingresos.detalles = data.ingresos.detalles;
+        }
+      }
+      
+      // Procesar gastos si existen
+      if (data.gastos) {
+        processedData.gastos.total = data.gastos.total || 0;
+        
+        if (Array.isArray(data.gastos.detalles)) {
+          processedData.gastos.detalles = data.gastos.detalles;
+        }
+      }
+      
+      // Procesar balance
+      processedData.balance = data.balance || (processedData.ingresos.total - processedData.gastos.total);
+      
+      // Procesar comparativo con mes anterior si existe
+      if (data.comparativoMesAnterior) {
+        if (data.comparativoMesAnterior.ingresos) {
+          processedData.comparativoMesAnterior.ingresos = {
+            actual: data.comparativoMesAnterior.ingresos.actual || 0,
+            anterior: data.comparativoMesAnterior.ingresos.anterior || 0,
+            diferencia: data.comparativoMesAnterior.ingresos.diferencia || 0,
+            porcentaje: data.comparativoMesAnterior.ingresos.porcentaje || 0
+          };
+        }
+        
+        if (data.comparativoMesAnterior.gastos) {
+          processedData.comparativoMesAnterior.gastos = {
+            actual: data.comparativoMesAnterior.gastos.actual || 0,
+            anterior: data.comparativoMesAnterior.gastos.anterior || 0,
+            diferencia: data.comparativoMesAnterior.gastos.diferencia || 0,
+            porcentaje: data.comparativoMesAnterior.gastos.porcentaje || 0
+          };
+        }
+        
+        if (data.comparativoMesAnterior.balance) {
+          processedData.comparativoMesAnterior.balance = {
+            actual: data.comparativoMesAnterior.balance.actual || 0,
+            anterior: data.comparativoMesAnterior.balance.anterior || 0,
+            diferencia: data.comparativoMesAnterior.balance.diferencia || 0,
+            porcentaje: data.comparativoMesAnterior.balance.porcentaje || 0
+          };
+        }
+      }
+      
+      return processedData;
+    } else {
+      // Estructura para reporte anual
+      const processedData = {
+        año: filtros.año,
+        ingresosTotales: 0,
+        gastosTotales: 0,
+        balanceAnual: 0,
+        ingresosPorMes: [],
+        gastosPorMes: [],
+        comparativoAñoAnterior: {
+          ingresos: { actual: 0, anterior: 0, diferencia: 0, porcentaje: 0 },
+          gastos: { actual: 0, anterior: 0, diferencia: 0, porcentaje: 0 },
+          balance: { actual: 0, anterior: 0, diferencia: 0, porcentaje: 0 }
+        }
+      };
+      
+      // Procesar ingresos totales
+      processedData.ingresosTotales = data.ingresosTotales || 0;
+      
+      // Procesar gastos totales
+      processedData.gastosTotales = data.gastosTotales || 0;
+      
+      // Procesar balance anual
+      processedData.balanceAnual = data.balanceAnual || (processedData.ingresosTotales - processedData.gastosTotales);
+      
+      // Procesar ingresos por mes
+      if (Array.isArray(data.ingresosPorMes)) {
+        processedData.ingresosPorMes = data.ingresosPorMes;
+      }
+      
+      // Procesar gastos por mes
+      if (Array.isArray(data.gastosPorMes)) {
+        processedData.gastosPorMes = data.gastosPorMes;
+      }
+      
+      // Procesar comparativo con año anterior si existe
+      if (data.comparativoAñoAnterior) {
+        if (data.comparativoAñoAnterior.ingresos) {
+          processedData.comparativoAñoAnterior.ingresos = {
+            actual: data.comparativoAñoAnterior.ingresos.actual || 0,
+            anterior: data.comparativoAñoAnterior.ingresos.anterior || 0,
+            diferencia: data.comparativoAñoAnterior.ingresos.diferencia || 0,
+            porcentaje: data.comparativoAñoAnterior.ingresos.porcentaje || 0
+          };
+        }
+        
+        if (data.comparativoAñoAnterior.gastos) {
+          processedData.comparativoAñoAnterior.gastos = {
+            actual: data.comparativoAñoAnterior.gastos.actual || 0,
+            anterior: data.comparativoAñoAnterior.gastos.anterior || 0,
+            diferencia: data.comparativoAñoAnterior.gastos.diferencia || 0,
+            porcentaje: data.comparativoAñoAnterior.gastos.porcentaje || 0
+          };
+        }
+        
+        if (data.comparativoAñoAnterior.balance) {
+          processedData.comparativoAñoAnterior.balance = {
+            actual: data.comparativoAñoAnterior.balance.actual || 0,
+            anterior: data.comparativoAñoAnterior.balance.anterior || 0,
+            diferencia: data.comparativoAñoAnterior.balance.diferencia || 0,
+            porcentaje: data.comparativoAñoAnterior.balance.porcentaje || 0
+          };
+        }
+      }
+      
+      return processedData;
+    }
+  };
+
   const exportarReporte = () => {
     // Aquí se implementaría la lógica para exportar a PDF o Excel
     alert('Funcionalidad de exportación en desarrollo');
   };
 
-  // Datos de muestra para el reporte
-  const reporteMensualMuestra = {
-    periodo: `${filtros.mes}/${filtros.año}`,
-    ingresos: {
-      total: 25000,
-      detalles: [
-        { concepto: 'Inscripciones', monto: 8000 },
-        { concepto: 'Mensualidades', monto: 12000 },
-        { concepto: 'Cursos especiales', monto: 3000 },
-        { concepto: 'Venta de materiales', monto: 1500 },
-        { concepto: 'Otros ingresos', monto: 500 }
-      ]
-    },
-    gastos: {
-      total: 18000,
-      detalles: [
-        { concepto: 'Salarios', monto: 10000 },
-        { concepto: 'Materiales didácticos', monto: 2000 },
-        { concepto: 'Servicios básicos', monto: 3000 },
-        { concepto: 'Mantenimiento', monto: 2000 },
-        { concepto: 'Equipamiento', monto: 1000 }
-      ]
-    },
-    balance: 7000,
-    comparativoMesAnterior: {
-      ingresos: { actual: 25000, anterior: 24500, diferencia: 500, porcentaje: 2 },
-      gastos: { actual: 18000, anterior: 18500, diferencia: -500, porcentaje: -2.7 },
-      balance: { actual: 7000, anterior: 6000, diferencia: 1000, porcentaje: 16.7 }
-    }
-  };
-
-  const reporteAnualMuestra = {
-    año: filtros.año,
-    ingresosTotales: 300000,
-    gastosTotales: 220000,
-    balanceAnual: 80000,
-    ingresosPorMes: [
-      { mes: 'Enero', monto: 22000 },
-      { mes: 'Febrero', monto: 22000 },
-      { mes: 'Marzo', monto: 23000 },
-      { mes: 'Abril', monto: 24000 },
-      { mes: 'Mayo', monto: 24500 },
-      { mes: 'Junio', monto: 25000 },
-      { mes: 'Julio', monto: 25000 },
-      { mes: 'Agosto', monto: 26000 },
-      { mes: 'Septiembre', monto: 27000 },
-      { mes: 'Octubre', monto: 27500 },
-      { mes: 'Noviembre', monto: 27000 },
-      { mes: 'Diciembre', monto: 27000 }
-    ],
-    gastosPorMes: [
-      { mes: 'Enero', monto: 17000 },
-      { mes: 'Febrero', monto: 17000 },
-      { mes: 'Marzo', monto: 17500 },
-      { mes: 'Abril', monto: 18000 },
-      { mes: 'Mayo', monto: 18500 },
-      { mes: 'Junio', monto: 18000 },
-      { mes: 'Julio', monto: 18000 },
-      { mes: 'Agosto', monto: 19000 },
-      { mes: 'Septiembre', monto: 19500 },
-      { mes: 'Octubre', monto: 19500 },
-      { mes: 'Noviembre', monto: 19000 },
-      { mes: 'Diciembre', monto: 19000 }
-    ],
-    comparativoAñoAnterior: {
-      ingresos: { actual: 300000, anterior: 280000, diferencia: 20000, porcentaje: 7.1 },
-      gastos: { actual: 220000, anterior: 210000, diferencia: 10000, porcentaje: 4.8 },
-      balance: { actual: 80000, anterior: 70000, diferencia: 10000, porcentaje: 14.3 }
-    }
-  };
-
-  // Usar datos de muestra o datos reales
-  const displayReporte = reporteData || (filtros.tipoReporte === 'mensual' ? reporteMensualMuestra : reporteAnualMuestra);
+  // Verificar si hay datos para mostrar
+  const hayDatosParaMostrar = reporteData !== null;
 
   return (
     <div className="reportes-container">
@@ -193,7 +273,11 @@ const ReportesFinancieros = () => {
         </form>
       </div>
 
-      {reporteData || true ? (
+      {!hayDatosParaMostrar ? (
+        <div className="no-data-message">
+          <p>No hay datos disponibles. Por favor, genere un reporte utilizando los filtros.</p>
+        </div>
+      ) : (
         <div className="reporte-content">
           <div className="reporte-header">
             <h2>
@@ -211,60 +295,68 @@ const ReportesFinancieros = () => {
               <div className="summary-cards">
                 <div className="summary-card ingresos">
                   <h3>Total Ingresos</h3>
-                  <div className="amount">${displayReporte.ingresos.total}</div>
+                  <div className="amount">${reporteData.ingresos.total.toFixed(2)}</div>
                 </div>
                 <div className="summary-card gastos">
                   <h3>Total Gastos</h3>
-                  <div className="amount">${displayReporte.gastos.total}</div>
+                  <div className="amount">${reporteData.gastos.total.toFixed(2)}</div>
                 </div>
                 <div className="summary-card balance">
                   <h3>Balance</h3>
-                  <div className="amount">${displayReporte.balance}</div>
+                  <div className="amount">${reporteData.balance.toFixed(2)}</div>
                 </div>
               </div>
 
               <div className="reporte-section">
                 <h3>Detalle de Ingresos</h3>
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Concepto</th>
-                      <th>Monto</th>
-                      <th>Porcentaje</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {displayReporte.ingresos.detalles.map((item, index) => (
-                      <tr key={index}>
-                        <td>{item.concepto}</td>
-                        <td>${item.monto}</td>
-                        <td>{((item.monto / displayReporte.ingresos.total) * 100).toFixed(2)}%</td>
+                {reporteData.ingresos.detalles.length > 0 ? (
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Concepto</th>
+                        <th>Monto</th>
+                        <th>Porcentaje</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {reporteData.ingresos.detalles.map((item, index) => (
+                        <tr key={index}>
+                          <td>{item.concepto}</td>
+                          <td>${Number(item.monto).toFixed(2)}</td>
+                          <td>{((Number(item.monto) / reporteData.ingresos.total) * 100).toFixed(2)}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="no-data">No hay detalles de ingresos disponibles</div>
+                )}
               </div>
 
               <div className="reporte-section">
                 <h3>Detalle de Gastos</h3>
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Concepto</th>
-                      <th>Monto</th>
-                      <th>Porcentaje</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {displayReporte.gastos.detalles.map((item, index) => (
-                      <tr key={index}>
-                        <td>{item.concepto}</td>
-                        <td>${item.monto}</td>
-                        <td>{((item.monto / displayReporte.gastos.total) * 100).toFixed(2)}%</td>
+                {reporteData.gastos.detalles.length > 0 ? (
+                  <table className="table">
+                    <thead>
+                      <tr>
+                        <th>Concepto</th>
+                        <th>Monto</th>
+                        <th>Porcentaje</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {reporteData.gastos.detalles.map((item, index) => (
+                        <tr key={index}>
+                          <td>{item.concepto}</td>
+                          <td>${Number(item.monto).toFixed(2)}</td>
+                          <td>{((Number(item.monto) / reporteData.gastos.total) * 100).toFixed(2)}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className="no-data">No hay detalles de gastos disponibles</div>
+                )}
               </div>
 
               <div className="reporte-section">
@@ -282,29 +374,29 @@ const ReportesFinancieros = () => {
                   <tbody>
                     <tr>
                       <td>Ingresos</td>
-                      <td>${displayReporte.comparativoMesAnterior.ingresos.actual}</td>
-                      <td>${displayReporte.comparativoMesAnterior.ingresos.anterior}</td>
-                      <td>${displayReporte.comparativoMesAnterior.ingresos.diferencia}</td>
-                      <td className={displayReporte.comparativoMesAnterior.ingresos.porcentaje >= 0 ? 'positivo' : 'negativo'}>
-                        {displayReporte.comparativoMesAnterior.ingresos.porcentaje}%
+                      <td>${reporteData.comparativoMesAnterior.ingresos.actual.toFixed(2)}</td>
+                      <td>${reporteData.comparativoMesAnterior.ingresos.anterior.toFixed(2)}</td>
+                      <td>${reporteData.comparativoMesAnterior.ingresos.diferencia.toFixed(2)}</td>
+                      <td className={reporteData.comparativoMesAnterior.ingresos.porcentaje >= 0 ? 'positivo' : 'negativo'}>
+                        {reporteData.comparativoMesAnterior.ingresos.porcentaje.toFixed(2)}%
                       </td>
                     </tr>
                     <tr>
                       <td>Gastos</td>
-                      <td>${displayReporte.comparativoMesAnterior.gastos.actual}</td>
-                      <td>${displayReporte.comparativoMesAnterior.gastos.anterior}</td>
-                      <td>${displayReporte.comparativoMesAnterior.gastos.diferencia}</td>
-                      <td className={displayReporte.comparativoMesAnterior.gastos.porcentaje <= 0 ? 'positivo' : 'negativo'}>
-                        {displayReporte.comparativoMesAnterior.gastos.porcentaje}%
+                      <td>${reporteData.comparativoMesAnterior.gastos.actual.toFixed(2)}</td>
+                      <td>${reporteData.comparativoMesAnterior.gastos.anterior.toFixed(2)}</td>
+                      <td>${reporteData.comparativoMesAnterior.gastos.diferencia.toFixed(2)}</td>
+                      <td className={reporteData.comparativoMesAnterior.gastos.porcentaje <= 0 ? 'positivo' : 'negativo'}>
+                        {reporteData.comparativoMesAnterior.gastos.porcentaje.toFixed(2)}%
                       </td>
                     </tr>
                     <tr>
                       <td>Balance</td>
-                      <td>${displayReporte.comparativoMesAnterior.balance.actual}</td>
-                      <td>${displayReporte.comparativoMesAnterior.balance.anterior}</td>
-                      <td>${displayReporte.comparativoMesAnterior.balance.diferencia}</td>
-                      <td className={displayReporte.comparativoMesAnterior.balance.porcentaje >= 0 ? 'positivo' : 'negativo'}>
-                        {displayReporte.comparativoMesAnterior.balance.porcentaje}%
+                      <td>${reporteData.comparativoMesAnterior.balance.actual.toFixed(2)}</td>
+                      <td>${reporteData.comparativoMesAnterior.balance.anterior.toFixed(2)}</td>
+                      <td>${reporteData.comparativoMesAnterior.balance.diferencia.toFixed(2)}</td>
+                      <td className={reporteData.comparativoMesAnterior.balance.porcentaje >= 0 ? 'positivo' : 'negativo'}>
+                        {reporteData.comparativoMesAnterior.balance.porcentaje.toFixed(2)}%
                       </td>
                     </tr>
                   </tbody>
@@ -316,15 +408,15 @@ const ReportesFinancieros = () => {
               <div className="summary-cards">
                 <div className="summary-card ingresos">
                   <h3>Ingresos Anuales</h3>
-                  <div className="amount">${displayReporte.ingresosTotales}</div>
+                  <div className="amount">${reporteData.ingresosTotales.toFixed(2)}</div>
                 </div>
                 <div className="summary-card gastos">
                   <h3>Gastos Anuales</h3>
-                  <div className="amount">${displayReporte.gastosTotales}</div>
+                  <div className="amount">${reporteData.gastosTotales.toFixed(2)}</div>
                 </div>
                 <div className="summary-card balance">
                   <h3>Balance Anual</h3>
-                  <div className="amount">${displayReporte.balanceAnual}</div>
+                  <div className="amount">${reporteData.balanceAnual.toFixed(2)}</div>
                 </div>
               </div>
 
@@ -333,26 +425,33 @@ const ReportesFinancieros = () => {
                 <div className="chart-container">
                   {/* Aquí se podría integrar un gráfico de líneas */}
                   <div className="line-chart-placeholder">
-                    <table className="table">
-                      <thead>
-                        <tr>
-                          <th>Mes</th>
-                          <th>Ingresos</th>
-                          <th>Gastos</th>
-                          <th>Balance</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {displayReporte.ingresosPorMes.map((item, index) => (
-                          <tr key={index}>
-                            <td>{item.mes}</td>
-                            <td>${item.monto}</td>
-                            <td>${displayReporte.gastosPorMes[index].monto}</td>
-                            <td>${item.monto - displayReporte.gastosPorMes[index].monto}</td>
+                    {reporteData.ingresosPorMes.length > 0 && reporteData.gastosPorMes.length > 0 ? (
+                      <table className="table">
+                        <thead>
+                          <tr>
+                            <th>Mes</th>
+                            <th>Ingresos</th>
+                            <th>Gastos</th>
+                            <th>Balance</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {reporteData.ingresosPorMes.map((item, index) => {
+                            const gastoMes = reporteData.gastosPorMes[index] || { monto: 0 };
+                            return (
+                              <tr key={index}>
+                                <td>{item.mes}</td>
+                                <td>${Number(item.monto).toFixed(2)}</td>
+                                <td>${Number(gastoMes.monto).toFixed(2)}</td>
+                                <td>${(Number(item.monto) - Number(gastoMes.monto)).toFixed(2)}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <div className="no-data">No hay datos de evolución mensual disponibles</div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -372,29 +471,29 @@ const ReportesFinancieros = () => {
                   <tbody>
                     <tr>
                       <td>Ingresos</td>
-                      <td>${displayReporte.comparativoAñoAnterior.ingresos.actual}</td>
-                      <td>${displayReporte.comparativoAñoAnterior.ingresos.anterior}</td>
-                      <td>${displayReporte.comparativoAñoAnterior.ingresos.diferencia}</td>
-                      <td className={displayReporte.comparativoAñoAnterior.ingresos.porcentaje >= 0 ? 'positivo' : 'negativo'}>
-                        {displayReporte.comparativoAñoAnterior.ingresos.porcentaje}%
+                      <td>${reporteData.comparativoAñoAnterior.ingresos.actual.toFixed(2)}</td>
+                      <td>${reporteData.comparativoAñoAnterior.ingresos.anterior.toFixed(2)}</td>
+                      <td>${reporteData.comparativoAñoAnterior.ingresos.diferencia.toFixed(2)}</td>
+                      <td className={reporteData.comparativoAñoAnterior.ingresos.porcentaje >= 0 ? 'positivo' : 'negativo'}>
+                        {reporteData.comparativoAñoAnterior.ingresos.porcentaje.toFixed(2)}%
                       </td>
                     </tr>
                     <tr>
                       <td>Gastos</td>
-                      <td>${displayReporte.comparativoAñoAnterior.gastos.actual}</td>
-                      <td>${displayReporte.comparativoAñoAnterior.gastos.anterior}</td>
-                      <td>${displayReporte.comparativoAñoAnterior.gastos.diferencia}</td>
-                      <td className={displayReporte.comparativoAñoAnterior.gastos.porcentaje <= 0 ? 'positivo' : 'negativo'}>
-                        {displayReporte.comparativoAñoAnterior.gastos.porcentaje}%
+                      <td>${reporteData.comparativoAñoAnterior.gastos.actual.toFixed(2)}</td>
+                      <td>${reporteData.comparativoAñoAnterior.gastos.anterior.toFixed(2)}</td>
+                      <td>${reporteData.comparativoAñoAnterior.gastos.diferencia.toFixed(2)}</td>
+                      <td className={reporteData.comparativoAñoAnterior.gastos.porcentaje <= 0 ? 'positivo' : 'negativo'}>
+                        {reporteData.comparativoAñoAnterior.gastos.porcentaje.toFixed(2)}%
                       </td>
                     </tr>
                     <tr>
                       <td>Balance</td>
-                      <td>${displayReporte.comparativoAñoAnterior.balance.actual}</td>
-                      <td>${displayReporte.comparativoAñoAnterior.balance.anterior}</td>
-                      <td>${displayReporte.comparativoAñoAnterior.balance.diferencia}</td>
-                      <td className={displayReporte.comparativoAñoAnterior.balance.porcentaje >= 0 ? 'positivo' : 'negativo'}>
-                        {displayReporte.comparativoAñoAnterior.balance.porcentaje}%
+                      <td>${reporteData.comparativoAñoAnterior.balance.actual.toFixed(2)}</td>
+                      <td>${reporteData.comparativoAñoAnterior.balance.anterior.toFixed(2)}</td>
+                      <td>${reporteData.comparativoAñoAnterior.balance.diferencia.toFixed(2)}</td>
+                      <td className={reporteData.comparativoAñoAnterior.balance.porcentaje >= 0 ? 'positivo' : 'negativo'}>
+                        {reporteData.comparativoAñoAnterior.balance.porcentaje.toFixed(2)}%
                       </td>
                     </tr>
                   </tbody>
@@ -403,7 +502,7 @@ const ReportesFinancieros = () => {
             </div>
           )}
         </div>
-      ) : null}
+      )}
     </div>
   );
 };
@@ -414,7 +513,7 @@ const getMesNombre = (mesNumero) => {
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
-  return meses[parseInt(mesNumero) - 1];
+  return meses[parseInt(mesNumero) - 1] || '';
 };
 
 export default ReportesFinancieros;
