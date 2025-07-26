@@ -23,16 +23,14 @@ jobs:
           cd /root/Prometheus_Be
           git pull origin main
           
-          # Detener todos los contenedores relacionados
-          docker-compose down --remove-orphans
+          # En lugar de detener todos los contenedores, solo enfocarse en el frontend
           
-          # Limpieza más agresiva de contenedores e imágenes
-          # Detener todos los contenedores que usan el puerto 8090
-          CONTAINER_ID=$(docker ps -q --filter publish=8090)
-          if [ ! -z "$CONTAINER_ID" ]; then
-            echo "Stopping container using port 8090: $CONTAINER_ID"
-            docker stop $CONTAINER_ID
-            docker rm $CONTAINER_ID
+          # Detener y eliminar solo el contenedor frontend si existe
+          FRONTEND_CONTAINER=$(docker ps -a -q --filter name=prometheus-frontend)
+          if [ ! -z "$FRONTEND_CONTAINER" ]; then
+            echo "Stopping and removing frontend container: $FRONTEND_CONTAINER"
+            docker stop $FRONTEND_CONTAINER
+            docker rm $FRONTEND_CONTAINER
           fi
           
           # Verificar y matar cualquier proceso que use el puerto 8090
@@ -42,18 +40,19 @@ jobs:
             kill -9 $PORT_PID
           fi
           
-          # Eliminar contenedores con el mismo nombre
+          # Eliminar contenedores con el mismo nombre (por si acaso)
           EXISTING_CONTAINER=$(docker ps -a -q --filter name=prometheus_app)
           if [ ! -z "$EXISTING_CONTAINER" ]; then
             echo "Removing existing container: $EXISTING_CONTAINER"
             docker rm -f $EXISTING_CONTAINER
           fi
           
-          # Limpiar recursos no utilizados
-          docker system prune -f
+          # Limpiar solo las imágenes no utilizadas relacionadas con el frontend
+          docker image prune -f --filter "label=com.docker.compose.project=prometheus_be_frontend"
           
           # Esperar un momento para asegurar que los puertos se liberen
           sleep 5
           
-          # Iniciar los contenedores
-          docker-compose up -d --build
+          # Construir e iniciar solo el servicio frontend
+          docker-compose build frontend
+          docker-compose up -d frontend
