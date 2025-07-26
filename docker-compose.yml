@@ -7,7 +7,7 @@ services:
     build: .
     container_name: prometheus-frontend
     ports:
-      - "8090:8080"  # Solo el frontend está expuesto públicamente
+      - "8090:5000"  # Solo el frontend está expuesto públicamente
     environment:
       # El frontend se conecta al backend usando el nombre del servicio
       - VITE_API_URL=http://app:5000
