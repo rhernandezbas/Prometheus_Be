@@ -22,5 +22,19 @@ jobs:
         script: |
           cd /root/Prometheus_Be
           git pull origin main
+          
+          # Detener todos los contenedores relacionados
           docker-compose down
+          
+          # Verificar y matar cualquier proceso que use el puerto 8090
+          PORT_PID=$(lsof -t -i:8090 || echo "")
+          if [ ! -z "$PORT_PID" ]; then
+            echo "Killing process using port 8090: $PORT_PID"
+            kill -9 $PORT_PID
+          fi
+          
+          # Esperar un momento para asegurar que los puertos se liberen
+          sleep 5
+          
+          # Iniciar los contenedores
           docker-compose up -d --build
