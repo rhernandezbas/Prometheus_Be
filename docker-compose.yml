@@ -6,9 +6,9 @@ services:
     ports:
       - "8090:8080"
     environment:
-      - VITE_API_URL=http://localhost:8080
+      - VITE_API_URL=http://app:5000
     networks:
-      - app-network
+      - academia-network
 
 networks:
   app-network:
