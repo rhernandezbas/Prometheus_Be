@@ -11,26 +11,11 @@ services:
     environment:
       # El frontend se conecta al backend usando el nombre del servicio
       - VITE_API_URL=http://app:5000
-    depends_on:
-      - app
     networks:
       - academia-network
     restart: unless-stopped
       
-  app:
-    # Imagen del backend
-    image: prometheus_backend:latest
-    container_name: prometheus-backend
-    # Si tienes un Dockerfile para el backend en otra ubicación
-    # build: ./backend
-    ports:
-      - "8090:5000"  # Expone el puerto 5000 para desarrollo/depuración
-    environment:
-      - PORT=5000
-      # Añade aquí otras variables de entorno que necesite tu backend
-    networks:
-      - academia-network
-    restart: unless-stopped
+
 
 networks:
   academia-network:
