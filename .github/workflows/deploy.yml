@@ -20,7 +20,7 @@ jobs:
         username: root
         key: ${{ secrets.VPS_SSH_KEY }}
         script: |
-          cd /root/Prometheus
+          cd /root/Prometheus_Be
           git pull origin main
           docker-compose down
           docker-compose up -d --build
