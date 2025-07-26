@@ -30,15 +30,15 @@ jobs:
           # Detener todos los contenedores que usan el puerto 8090
           CONTAINER_ID=$(docker ps -q --filter publish=8090)
           if [ ! -z "$CONTAINER_ID" ]; then
-            echo "Stopping container using port 8080: $CONTAINER_ID"
+            echo "Stopping container using port 8090: $CONTAINER_ID"
             docker stop $CONTAINER_ID
             docker rm $CONTAINER_ID
           fi
           
           # Verificar y matar cualquier proceso que use el puerto 8090
-          PORT_PID=$(lsof -t -i:8080 || echo "")
+          PORT_PID=$(lsof -t -i:8090 || echo "")
           if [ ! -z "$PORT_PID" ]; then
-            echo "Killing process using port 8080: $PORT_PID"
+            echo "Killing process using port 8090: $PORT_PID"
             kill -9 $PORT_PID
           fi
           
