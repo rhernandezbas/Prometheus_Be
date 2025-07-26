@@ -20,7 +20,7 @@ RUN npm run build
 RUN npm install -g serve
 
 # Exponer puerto
-EXPOSE 8080
+EXPOSE 8090
 
 # Comando para ejecutar
-CMD ["serve", "-s", "dist", "-l", "8080"]
+CMD ["serve", "-s", "dist", "-l", "8090"]
