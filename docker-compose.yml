@@ -16,23 +16,6 @@ services:
     networks:
       - academia-network
 
-  app:
-    # Aquí irá la configuración de tu backend
-    # Por ejemplo, si es una imagen de Python/Flask:
-    # image: tu-backend-image:latest
-    # build: ./backend
-    # ports:
-    #   - "5000:5000"  # Puerto interno, no expuesto públicamente
-    # environment:
-    #   - DATABASE_URL=postgresql://user:pass@db:5432/dbname
-    # depends_on:
-    #   - db
-    networks:
-      - academia-network
-    # Comentado hasta que configures tu backend
-    image: nginx:alpine  # placeholder temporal
-    command: ["sh", "-c", "echo 'Backend placeholder' && sleep infinity"]
-
 networks:
   academia-network:
     driver: bridge
