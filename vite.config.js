@@ -11,47 +11,47 @@ export default defineConfig({
     open: true,
     proxy: {
       '/estudiantes': {
-        target: 'http://localhost:8080',
+        target: 'http://app:5000',
         changeOrigin: true,
         secure: false
       },
       '/auth': {
-        target: 'http://localhost:8080',
+        target: 'http://app:5000',
         changeOrigin: true,
         secure: false
       },
       '/user': {
-        target: 'http://localhost:8080',
+        target: 'http://app:5000',
         changeOrigin: true,
         secure: false
       },
       '/refresh-token': {
-        target: 'http://localhost:8080',
+        target: 'http://app:5000',
         changeOrigin: true,
         secure: false
       },
       '/evaluacion': {
-        target: 'http://localhost:8080',
+        target: 'http://app:5000',
         changeOrigin: true,
         secure: false
       },
       '/niveles': {
-        target: 'http://localhost:8080',
+        target: 'http://app:5000',
         changeOrigin: true,
         secure: false
       },
       '/administracion': {
-        target: 'http://localhost:8080',
+        target: 'http://app:5000',
         changeOrigin: true,
         secure: false
       },
       '/finanzas': {
-        target: 'http://localhost:8080',
+        target: 'http://app:5000',
         changeOrigin: true,
         secure: false
       },
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'http://app:5000',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '')
