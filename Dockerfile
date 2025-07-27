@@ -23,4 +23,4 @@ RUN npm install -g serve
 EXPOSE 5000
 
 # Comando para ejecutar
-CMD ["serve", "-s", "dist", "-l","--host=0.0.0.0", "--port=5000"]
+CMD ["serve", "-s", "dist", "-l", "5000"]
