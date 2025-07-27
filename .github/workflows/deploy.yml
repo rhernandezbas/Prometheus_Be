@@ -36,5 +36,3 @@ jobs:
           docker image prune -f
 
           
-          
- 
