@@ -8,9 +8,8 @@ services:
     container_name: prometheus-frontend
     ports:
       - "8090:5000"  # Solo el frontend está expuesto públicamente
-    environment:
-      # El frontend se conecta al backend usando el nombre del servicio
-      - VITE_API_URL=http://prometheus-backend:5000
+    env_file:
+      - .env
     networks:
       - academia-network
     restart: unless-stopped
