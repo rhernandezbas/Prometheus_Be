@@ -23,41 +23,18 @@ jobs:
           cd /root/Prometheus_Be
           git pull origin main
           
-          # Enfoque más directo para evitar el error ContainerConfig
+          #parar el contenedor
+          docker stop prometheus-frontend
           
-          # Detener y eliminar contenedores específicos
-          echo "Stopping and removing containers..."
-          docker stop prometheus-frontend || true
-          docker rm prometheus-frontend || true
+          #borrar el contenedor
+          docker rm prometheus-frontend
           
-          # Verificar y matar cualquier proceso que use el puerto 8090
-          PORT_PID=$(lsof -t -i:8090 || echo "")
-          if [ ! -z "$PORT_PID" ]; then
-            echo "Killing process using port 8090: $PORT_PID"
-            kill -9 $PORT_PID
-          fi
+          #crea la imagen y levanta el contenedor
+          docker-compose up -d --build
           
-          # Limpiar imágenes huérfanas
-          echo "Cleaning up dangling images..."
-          docker image prune -f
+          #borra la imagenes redundantes
+          docker image prune
+
           
-          # Esperar un momento para asegurar que los puertos se liberen
-          sleep 5
           
-          # Crear la red Docker si no existe
-          echo "Ensuring Docker network exists..."
-          docker network inspect academia-network >/dev/null 2>&1 || docker network create academia-network
-          
-          # Reconstruir la imagen desde cero
-          echo "Building fresh image..."
-          docker build -t prometheus_be_frontend:latest .
-          
-          # Iniciar el contenedor con un comando directo en lugar de docker-compose
-          echo "Starting container..."
-          docker run -d \
-            --name prometheus-frontend \
-            -p 8090:8090 \
-            --network academia-network \
-            -e VITE_API_URL=http://app:5000 \
-            --restart unless-stopped \
-            prometheus_be_frontend:latest
+ 
