@@ -44,6 +44,10 @@ jobs:
           # Esperar un momento para asegurar que los puertos se liberen
           sleep 5
           
+          # Crear la red Docker si no existe
+          echo "Ensuring Docker network exists..."
+          docker network inspect academia-network >/dev/null 2>&1 || docker network create academia-network
+          
           # Reconstruir la imagen desde cero
           echo "Building fresh image..."
           docker build -t prometheus_be_frontend:latest .
