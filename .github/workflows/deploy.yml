@@ -33,7 +33,7 @@ jobs:
           docker-compose up -d --build
           
           #borra la imagenes redundantes
-          docker image prune
+          docker image prune -f
 
           
           
